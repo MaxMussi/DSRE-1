@@ -57,5 +57,10 @@ z_index = 2
 use_parent_material = true
 tile_set = ExtResource("1_61ypp")
 
+[node name="Ghost" type="TileMapLayer" parent="Game"]
+z_index = 1
+use_parent_material = true
+tile_set = ExtResource("1_61ypp")
+
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0

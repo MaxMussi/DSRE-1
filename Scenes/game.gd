@@ -1,4 +1,4 @@
-extends TileMap
+extends Node2D
 
 var i_0 := [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(3, 1)]
 var i_90 := [Vector2i(2, 0), Vector2i(2, 1), Vector2i(2, 2), Vector2i(2, 3)]
@@ -43,73 +43,60 @@ var j_270 := [Vector2i(1, 0), Vector2i(1, 1), Vector2i(0, 2), Vector2i(1, 2)]
 var j := [j_0, j_90, j_180, j_270]
 
 var piece_shapes = { "i" : i, "t" : t, "o" : o, "z" : z, "s" : s, "l" : l, "j" : j }
-
-var piece_colors = {
-	"i" : Vector2i(1,1), "t" : Vector2i(0,2), "o" : Vector2i(2,0),
-	"z" : Vector2i(0,1), "s" : Vector2i(0,0), "l" : Vector2i(1,0), "j" : Vector2i(2,1)
-}
-
-var piece_icons = { 
-	"i" : [Vector2i(2, 0), Vector2i(3, 0), Vector2i(2, 1), Vector2i(3, 1)],
-	"t" : [Vector2i(0, 4), Vector2i(1, 4), Vector2i(0, 5), Vector2i(1, 5)],
-	"o" : [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)],
-	"z" : [Vector2i(0, 2), Vector2i(1, 2), Vector2i(0, 3), Vector2i(1, 3)],
-	"s" : [Vector2i(4, 0), Vector2i(5, 0), Vector2i(4, 1), Vector2i(5, 1)],
-	"l" : [Vector2i(2, 2), Vector2i(3, 2), Vector2i(2, 3), Vector2i(3, 3)],
-	"j" : [Vector2i(4, 2), Vector2i(5, 2), Vector2i(4, 3), Vector2i(5, 3)] 
-}
-
+var piece_colors = { "i" : Vector2i(1,1), "t" : Vector2i(0,2), "o" : Vector2i(2,0), "z" : Vector2i(0,1), "s" : Vector2i(0,0), "l" : Vector2i(1,0), "j" : Vector2i(2,1) }
+var piece_icons = { "i" : [Vector2i(2, 0), Vector2i(3, 0), Vector2i(2, 1), Vector2i(3, 1)], "t" : [Vector2i(0, 4), Vector2i(1, 4), Vector2i(0, 5), Vector2i(1, 5)], "o" : [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)], "z" : [Vector2i(0, 2), Vector2i(1, 2), Vector2i(0, 3), Vector2i(1, 3)], "s" : [Vector2i(4, 0), Vector2i(5, 0), Vector2i(4, 1), Vector2i(5, 1)], "l" : [Vector2i(2, 2), Vector2i(3, 2), Vector2i(2, 3), Vector2i(3, 3)], "j" : [Vector2i(4, 2), Vector2i(5, 2), Vector2i(4, 3), Vector2i(5, 3)] }
 var piece_stats = { "i": 0, "t": 0, "o": 0, "z": 0, "s": 0, "l": 0, "j": 0 }
-
-var stat_pos = {
-	"i" : Vector2i(5,8), "t" : Vector2i(5,23), "o" : Vector2i(5,5),
-	"z" : Vector2i(5,14), "s" : Vector2i(5,11), "l" : Vector2i(5,17), "j" : Vector2i(5,20)
-}
-
-var numbers = [
-	Vector2i(10,0), Vector2i(1,0), Vector2i(2,0), Vector2i(3,0), Vector2i(4,0),
-	Vector2i(5,0), Vector2i(6,0), Vector2i(7,0), Vector2i(8,0), Vector2i(9,0)
-]
+var stat_pos = { "i" : Vector2i(5,8), "t" : Vector2i(5,23), "o" : Vector2i(5,5), "z" : Vector2i(5,14), "s" : Vector2i(5,11), "l" : Vector2i(5,17), "j" : Vector2i(5,20) }
+var numbers = [Vector2i(10,0), Vector2i(1,0), Vector2i(2,0), Vector2i(3,0), Vector2i(4,0), Vector2i(5,0), Vector2i(6,0), Vector2i(7,0), Vector2i(8,0), Vector2i(9,0)]
 
 const COLS : int = 10
 const ROWS : int = 20
 const ORIGIN := Vector2i(19, 3)
 const SCORE_POS := Vector2i(41, 3)
 const LEVEL_POS := Vector2i(41, 6)
+const PREVIEW_POS := Vector2i(44, 13)
 const REWARDS = { 1: 100, 2: 300, 3: 500, 4: 800 }
-const CUTOFF : int = 10
+const LOCK_DELAY : float = 0.5
+const GHOST_TILE := Vector2i(2, 2)
+
+@onready var piece_tilemap: TileMapLayer = $Pieces
+@onready var ghost_tilemap: TileMapLayer = $Ghost
+@onready var text_tilemap: TileMapLayer = $TextMod
 
 var das_delay: float = 0.15
 var das_speed: float = 0.05
 var das_timer: float = 0.0
-var bag = []
-var piece_shape
-var piece_color
-var rotation_index : int = 0
-var active_piece : Array
-var cur_pos : Vector2i
-var score : int = 0
-var level : int = 1
-var lines_cleared : int = 0
-var tiles_id : int = 0
-var numbers_id : int = 2
-var speed : float = 1.0
-var steps : float = 0.0
-var game_running : bool = false
-var game_over_time : int = 0
+var bag: Array = []
+var piece_shape: Array
+var piece_color: Vector2i
+var rotation_index: int = 0
+var active_piece: Array
+var cur_pos: Vector2i
+var score: int = 0
+var level: int = 1
+var lines_cleared: int = 0
+var tiles_id: int = 0
+var numbers_id: int = 2
+var speed: float = 1.0
+var steps: float = 0.0
+var lock_timer: float = 0.0
+var game_running: bool = false
 
-func _ready():
+var current_piece_coords: Array[Vector2i] = []
+
+func _ready() -> void:
 	new_game()
 
-func new_game():
-	$Pieces.clear()
+func new_game() -> void:
+	piece_tilemap.clear()
+	ghost_tilemap.clear()
 	score = 0
 	level = 1
 	lines_cleared = 0
 	speed = 1.0
 	steps = 0.0
+	lock_timer = 0.0
 	game_running = true
-	game_over_time = 0
 	bag.clear()
 	for k in piece_stats: piece_stats[k] = 0
 	update_stats_display()
@@ -118,13 +105,13 @@ func new_game():
 	spawn_next_piece()
 	update_preview()
 
-func game_over():
+func game_over() -> void:
 	game_running = false
-	var used_cells = $Pieces.get_used_cells()
-	for cell in used_cells:
-		$Pieces.set_cell(cell, tiles_id, Vector2i(2, 2))
+	var used = piece_tilemap.get_used_cells()
+	for cell in used:
+		piece_tilemap.set_cell(cell, tiles_id, GHOST_TILE)
 
-func spawn_next_piece():
+func spawn_next_piece() -> void:
 	if not game_running: return
 	var key = pick_piece_key()
 	track_piece(key)
@@ -132,199 +119,181 @@ func spawn_next_piece():
 	piece_shape = piece_shapes[key]
 	piece_color = piece_colors[key]
 	rotation_index = 0
-	cur_pos = ORIGIN
+	cur_pos = ORIGIN + Vector2i(COLS / 2 - 1, 0)
 	active_piece = piece_shape[rotation_index]
+	lock_timer = 0.0
 	
-	if not can_move(Vector2i.ZERO):
-		draw_piece(active_piece, cur_pos, piece_color)
+	if not can_move_logic(cur_pos, active_piece):
+		draw_state()
 		game_over()
 	else:
-		handle_buffer()
-		draw_piece(active_piece, cur_pos, piece_color)
+		draw_state()
 
-func handle_buffer():
-	if Input.is_action_pressed("ui_up"): rotate_piece()
-	if Input.is_action_pressed("ui_left"): move_piece(Vector2i.LEFT)
-	if Input.is_action_pressed("ui_right"): move_piece(Vector2i.RIGHT)
-
-func pick_piece_key():
+func pick_piece_key() -> String:
 	if bag.is_empty():
 		bag = piece_shapes.keys().duplicate()
 		bag.shuffle()
 	return bag.pop_front()
 
-func clear_piece():
+func draw_state() -> void:
+	ghost_tilemap.clear()
+	
+	for coord in current_piece_coords:
+		piece_tilemap.erase_cell(coord)
+	current_piece_coords.clear()
+
+	var g_pos = cur_pos
+	while can_move_logic(g_pos + Vector2i.DOWN, active_piece):
+		g_pos += Vector2i.DOWN
+	
 	for i in active_piece:
-		$Pieces.erase_cell(cur_pos + i)
+		var p_coord = cur_pos + i
+		ghost_tilemap.set_cell(g_pos + i, tiles_id, GHOST_TILE)
+		piece_tilemap.set_cell(p_coord, tiles_id, piece_color)
+		current_piece_coords.append(p_coord)
 
-func draw_piece(piece, pos, atlas):
-	for i in piece:
-		$Pieces.set_cell(pos + i, tiles_id, atlas)
-
-func move_piece(dir):
+func move_piece(dir: Vector2i) -> bool:
 	if not game_running: return false
-	if can_move(dir):
-		clear_piece()
+	if can_move_logic(cur_pos + dir, active_piece):
 		cur_pos += dir
-		draw_piece(active_piece, cur_pos, piece_color)
+		draw_state()
 		return true
-	elif dir == Vector2i.DOWN:
-		lock_piece()
 	return false
 
-func rotate_piece():
+func rotate_piece() -> void:
 	if not game_running: return
-	if can_rotate():
-		clear_piece()
-		rotation_index = (rotation_index + 1) % 4
-		active_piece = piece_shape[rotation_index]
-		draw_piece(active_piece, cur_pos, piece_color)
+	var next_idx = (rotation_index + 1) % 4
+	var next_shape = piece_shape[next_idx]
+	var kicks = [Vector2i.ZERO, Vector2i.LEFT, Vector2i.RIGHT, Vector2i(0, -1)]
+	
+	for offset in kicks:
+		if can_move_logic(cur_pos + offset, next_shape):
+			cur_pos += offset
+			rotation_index = next_idx
+			active_piece = next_shape
+			draw_state()
+			lock_timer = 0.0
+			return
 
-func lock_piece():
+func lock_piece() -> void:
+	current_piece_coords.clear()
+	ghost_tilemap.clear()
 	check_lines()
 	spawn_next_piece()
 	update_preview()
 
-func is_free(pos):
-	if pos.x < ORIGIN.x or pos.x >= ORIGIN.x + COLS or pos.y >= ORIGIN.y + ROWS:
-		return false
-	
-	var sid = $Pieces.get_cell_source_id(pos)
-	if sid == -1: 
-		return true
+func can_move_logic(pos: Vector2i, shape: Array) -> bool:
+	for tile in shape:
+		var target = pos + tile
+		if target.x < ORIGIN.x or target.x >= ORIGIN.x + COLS or target.y >= ORIGIN.y + ROWS:
+			return false
 		
-	var current_tile_color = $Pieces.get_cell_atlas_coords(pos)
-	
-	if current_tile_color != piece_color:
-		return false
-		
-	for i in active_piece:
-		if pos == cur_pos + i:
-			return true
-			
-	return false
-
-func can_move(dir):
-	for i in active_piece:
-		if not is_free(i + cur_pos + dir): return false
+		var sid = piece_tilemap.get_cell_source_id(target)
+		if sid != -1:
+			if not target in current_piece_coords:
+				return false
 	return true
 
-func can_rotate():
-	var next_idx = (rotation_index + 1) % 4
-	for i in piece_shape[next_idx]:
-		if not is_free(i + cur_pos): return false
-	return true
-
-func check_lines():
-	for y in range(ORIGIN.y + ROWS - 1, ORIGIN.y - 1, -1):
+func check_lines() -> void:
+	var lines_to_clear: Array = []
+	for y in range(ORIGIN.y, ORIGIN.y + ROWS):
 		var full = true
 		for x in range(ORIGIN.x, ORIGIN.x + COLS):
-			if $Pieces.get_cell_source_id(Vector2i(x, y)) == -1:
+			if piece_tilemap.get_cell_source_id(Vector2i(x, y)) == -1:
 				full = false
 				break
 		if full:
-			delete_line(y)
-			var lines_this_pass = 1 + check_lines_silent()
-			lines_cleared += lines_this_pass
-			calculate_score(lines_this_pass)
-			set_level()
-			set_speed()
-			return
-	return
+			lines_to_clear.append(y)
+	
+	if lines_to_clear.size() > 0:
+		for line_y in lines_to_clear:
+			delete_line(line_y)
+		lines_cleared += lines_to_clear.size()
+		calculate_score(lines_to_clear.size())
+		set_level()
+		set_speed()
 
-func check_lines_silent():
-	for y in range(ORIGIN.y + ROWS - 1, ORIGIN.y - 1, -1):
-		var full = true
-		for x in range(ORIGIN.x, ORIGIN.x + COLS):
-			if $Pieces.get_cell_source_id(Vector2i(x, y)) == -1:
-				full = false
-				break
-		if full:
-			delete_line(y)
-			return 1 + check_lines_silent()
-	return 0
-
-func delete_line(y):
+func delete_line(y: int) -> void:
 	for row in range(y, ORIGIN.y, -1):
 		for x in range(ORIGIN.x, ORIGIN.x + COLS):
-			var atlas = $Pieces.get_cell_atlas_coords(Vector2i(x, row - 1))
-			var source = $Pieces.get_cell_source_id(Vector2i(x, row - 1))
-			$Pieces.set_cell(Vector2i(x, row), source, atlas)
+			var atlas = piece_tilemap.get_cell_atlas_coords(Vector2i(x, row - 1))
+			var source = piece_tilemap.get_cell_source_id(Vector2i(x, row - 1))
+			piece_tilemap.set_cell(Vector2i(x, row), source, atlas)
 	for x in range(ORIGIN.x, ORIGIN.x + COLS):
-		$Pieces.erase_cell(Vector2i(x, ORIGIN.y))
+		piece_tilemap.erase_cell(Vector2i(x, ORIGIN.y))
 
-func track_piece(key: String):
+func track_piece(key: String) -> void:
 	if piece_stats.has(key): piece_stats[key] += 1
 
-func calculate_score(lines: int):
-	if lines in REWARDS:
-		score += REWARDS[lines] * level
-		display_number(score, SCORE_POS, 6)
+func calculate_score(lines: int) -> void:
+	score += REWARDS.get(lines, 100) * level
+	display_number(score, SCORE_POS, 6)
 
-func set_level():
+func set_level() -> void:
 	level = (lines_cleared / 10) + 1
 	display_number(level, LEVEL_POS, 2)
 
-func set_speed():
-	if level < CUTOFF:
-		speed = 1.0 + (level - 1) * (sqrt(CUTOFF) / CUTOFF)
-	else:
-		speed = 1.0 + sqrt(level)
+func set_speed() -> void:
+	speed = 1.0 + (level - 1) * 0.15
 
-func display_number(value: int, start_pos: Vector2i, max_size: int):
-	for i in range(max_size): $TextMod.erase_cell(start_pos + Vector2i(i, 0))
+func display_number(value: int, start_pos: Vector2i, max_size: int) -> void:
+	for i in range(max_size): text_tilemap.erase_cell(start_pos + Vector2i(i, 0))
 	var s_val = str(value)
 	for i in range(s_val.length()):
 		if i >= max_size: break
-		$TextMod.set_cell(start_pos + Vector2i(i, 0), numbers_id, numbers[int(s_val[i])])
+		text_tilemap.set_cell(start_pos + Vector2i(i, 0), numbers_id, numbers[int(s_val[i])])
 
-func display_icon(icon: String, start_pos: Vector2i):
+func display_icon(icon: String, start_pos: Vector2i) -> void:
 	for i in 12:
-		$TextMod.erase_cell(start_pos + Vector2i(0, i))
-		$TextMod.erase_cell(start_pos + Vector2i(1, i))
+		text_tilemap.erase_cell(start_pos + Vector2i(0, i))
+		text_tilemap.erase_cell(start_pos + Vector2i(1, i))
+	for i in range(4):
+		text_tilemap.set_cell(start_pos + Vector2i(i%2, i/2), 4, piece_icons[icon][i])
 
-	$TextMod.set_cell(start_pos + Vector2i(0, 0), 4, piece_icons[icon][0])
-	$TextMod.set_cell(start_pos + Vector2i(1, 0), 4, piece_icons[icon][1])
-	$TextMod.set_cell(start_pos + Vector2i(0, 1), 4, piece_icons[icon][2])
-	$TextMod.set_cell(start_pos + Vector2i(1, 1), 4, piece_icons[icon][3])
-
-func update_stats_display():
+func update_stats_display() -> void:
 	for type in stat_pos.keys():
 		display_number(clampi(piece_stats[type], 0, 99), stat_pos[type], 2)
 
-func update_preview():
+func update_preview() -> void:
 	for i in bag.size():
-		display_icon(bag[i], Vector2i(44,13 + (2 * i)))
+		display_icon(bag[i], (PREVIEW_POS + Vector2i(0, (2 * i))))
 	if bag.size() == 0:
-		$TextMod.erase_cell(Vector2i(44,13) + Vector2i(0, 0))
-		$TextMod.erase_cell(Vector2i(44,13) + Vector2i(1, 0))
-		$TextMod.erase_cell(Vector2i(44,13) + Vector2i(0, 1))
-		$TextMod.erase_cell(Vector2i(44,13) + Vector2i(1, 1))
+		text_tilemap.erase_cell(PREVIEW_POS + Vector2i(0, 0))
+		text_tilemap.erase_cell(PREVIEW_POS + Vector2i(1, 0))
+		text_tilemap.erase_cell(PREVIEW_POS + Vector2i(0, 1))
+		text_tilemap.erase_cell(PREVIEW_POS + Vector2i(1, 1))
 
-func _process(delta):
-	if not game_running:
-		game_over_time += 1 * delta
-		
-		if game_over_time >= 2:
-			pass
+func _process(delta: float) -> void:
+	if not game_running: return
 
 	steps += speed * delta
 	if steps >= 1.0:
-		move_piece(Vector2i.DOWN)
+		if can_move_logic(cur_pos + Vector2i.DOWN, active_piece):
+			move_piece(Vector2i.DOWN)
 		steps = 0.0
+
+	if not can_move_logic(cur_pos + Vector2i.DOWN, active_piece):
+		lock_timer += delta
+		if lock_timer >= LOCK_DELAY / speed:
+			lock_piece()
+	else:
+		lock_timer = 0.0
+
 	if Input.is_action_just_pressed("ui_up"): rotate_piece()
 	if Input.is_action_pressed("ui_down"): steps += delta * 20
+	
 	var dir = Vector2i.ZERO
 	if Input.is_action_pressed("ui_left"): dir = Vector2i.LEFT
 	elif Input.is_action_pressed("ui_right"): dir = Vector2i.RIGHT
+	
 	if dir != Vector2i.ZERO:
 		if Input.is_action_just_pressed("ui_left") or Input.is_action_just_pressed("ui_right"):
-			move_piece(dir)
+			if move_piece(dir): lock_timer = 0.0
 			das_timer = 0.0
 		else:
 			das_timer += delta
 			if das_timer >= das_delay:
-				move_piece(dir)
+				if move_piece(dir): lock_timer = 0.0
 				das_timer = das_delay - das_speed
 	else:
 		das_timer = 0.0
