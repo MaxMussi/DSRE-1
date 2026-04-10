@@ -5,37 +5,31 @@ var i_90 := [Vector2i(2, 0), Vector2i(2, 1), Vector2i(2, 2), Vector2i(2, 3)]
 var i_180 := [Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2), Vector2i(3, 2)]
 var i_270 := [Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2), Vector2i(1, 3)]
 var i := [i_0, i_90, i_180, i_270]
-
 var t_0 := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
 var t_90 := [Vector2i(1, 0), Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 2)]
 var t_180 := [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 2)]
 var t_270 := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)]
 var t := [t_0, t_90, t_180, t_270]
-
 var o_0 := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
 var o_90 := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
 var o_180 := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
 var o_270 := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
 var o := [o_0, o_90, o_180, o_270]
-
 var z_0 := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(2, 1)]
 var z_90 := [Vector2i(2, 0), Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 2)]
 var z_180 := [Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2), Vector2i(2, 2)]
 var z_270 := [Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(0, 2)]
 var z := [z_0, z_90, z_180, z_270]
-
 var s_0 := [Vector2i(1, 0), Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1)]
 var s_90 := [Vector2i(1, 0), Vector2i(1, 1), Vector2i(2, 1), Vector2i(2, 2)]
 var s_180 := [Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2), Vector2i(1, 2)]
 var s_270 := [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(1, 2)]
 var s := [s_0, s_90, s_180, s_270]
-
 var l_0 := [Vector2i(2, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
 var l_90 := [Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2), Vector2i(2, 2)]
 var l_180 := [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(0, 2)]
 var l_270 := [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, 2)]
 var l := [l_0, l_90, l_180, l_270]
-
 var j_0 := [Vector2i(0, 0), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)]
 var j_90 := [Vector2i(1, 0), Vector2i(2, 0), Vector2i(1, 1), Vector2i(1, 2)]
 var j_180 := [Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1), Vector2i(2, 2)]
@@ -81,11 +75,10 @@ var speed: float = 1.0
 var steps: float = 0.0
 var lock_timer: float = 0.0
 var game_running: bool = false
-
 var current_piece_coords: Array[Vector2i] = []
 
 func _ready() -> void:
-	new_game()
+	pass
 
 func new_game() -> void:
 	piece_tilemap.clear()
@@ -122,7 +115,6 @@ func spawn_next_piece() -> void:
 	cur_pos = ORIGIN + Vector2i(COLS / 2 - 1, 0)
 	active_piece = piece_shape[rotation_index]
 	lock_timer = 0.0
-	
 	if not can_move_logic(cur_pos, active_piece):
 		draw_state()
 		game_over()
@@ -137,15 +129,12 @@ func pick_piece_key() -> String:
 
 func draw_state() -> void:
 	ghost_tilemap.clear()
-	
 	for coord in current_piece_coords:
 		piece_tilemap.erase_cell(coord)
 	current_piece_coords.clear()
-
 	var g_pos = cur_pos
 	while can_move_logic(g_pos + Vector2i.DOWN, active_piece):
 		g_pos += Vector2i.DOWN
-	
 	for i in active_piece:
 		var p_coord = cur_pos + i
 		ghost_tilemap.set_cell(g_pos + i, tiles_id, GHOST_TILE)
@@ -165,7 +154,6 @@ func rotate_piece() -> void:
 	var next_idx = (rotation_index + 1) % 4
 	var next_shape = piece_shape[next_idx]
 	var kicks = [Vector2i.ZERO, Vector2i.LEFT, Vector2i.RIGHT, Vector2i(0, -1)]
-	
 	for offset in kicks:
 		if can_move_logic(cur_pos + offset, next_shape):
 			cur_pos += offset
@@ -187,7 +175,6 @@ func can_move_logic(pos: Vector2i, shape: Array) -> bool:
 		var target = pos + tile
 		if target.x < ORIGIN.x or target.x >= ORIGIN.x + COLS or target.y >= ORIGIN.y + ROWS:
 			return false
-		
 		var sid = piece_tilemap.get_cell_source_id(target)
 		if sid != -1:
 			if not target in current_piece_coords:
@@ -204,7 +191,6 @@ func check_lines() -> void:
 				break
 		if full:
 			lines_to_clear.append(y)
-	
 	if lines_to_clear.size() > 0:
 		for line_y in lines_to_clear:
 			delete_line(line_y)
@@ -265,27 +251,22 @@ func update_preview() -> void:
 
 func _process(delta: float) -> void:
 	if not game_running: return
-
 	steps += speed * delta
 	if steps >= 1.0:
 		if can_move_logic(cur_pos + Vector2i.DOWN, active_piece):
 			move_piece(Vector2i.DOWN)
 		steps = 0.0
-
 	if not can_move_logic(cur_pos + Vector2i.DOWN, active_piece):
 		lock_timer += delta
 		if lock_timer >= LOCK_DELAY / speed:
 			lock_piece()
 	else:
 		lock_timer = 0.0
-
 	if Input.is_action_just_pressed("ui_up"): rotate_piece()
 	if Input.is_action_pressed("ui_down"): steps += delta * 20
-	
 	var dir = Vector2i.ZERO
 	if Input.is_action_pressed("ui_left"): dir = Vector2i.LEFT
 	elif Input.is_action_pressed("ui_right"): dir = Vector2i.RIGHT
-	
 	if dir != Vector2i.ZERO:
 		if Input.is_action_just_pressed("ui_left") or Input.is_action_just_pressed("ui_right"):
 			if move_piece(dir): lock_timer = 0.0
@@ -297,3 +278,6 @@ func _process(delta: float) -> void:
 				das_timer = das_delay - das_speed
 	else:
 		das_timer = 0.0
+
+func _input(_event: InputEvent) -> void:
+	if not game_running: return
